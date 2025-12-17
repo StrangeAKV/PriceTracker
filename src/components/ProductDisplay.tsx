@@ -103,6 +103,8 @@ const ProductDisplay = ({ product }: ProductDisplayProps) => {
                 <div className="border-t border-border pt-6">
                   <PriceAlertForm
                     productId={product.id}
+                    productTitle={product.title}
+                    productUrl={product.url}
                     currentPrice={product.currentPrice}
                     currency={product.currency}
                   />

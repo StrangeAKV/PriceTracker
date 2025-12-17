@@ -9,12 +9,14 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface PriceAlertFormProps {
   productId: string;
+  productTitle: string;
+  productUrl: string;
   currentPrice: number;
   currency: string;
   onAlertSet?: (targetPrice: number) => void;
 }
 
-const PriceAlertForm = ({ productId, currentPrice, currency, onAlertSet }: PriceAlertFormProps) => {
+const PriceAlertForm = ({ productId, productTitle, productUrl, currentPrice, currency, onAlertSet }: PriceAlertFormProps) => {
   const [targetPrice, setTargetPrice] = useState("");
   const [loading, setLoading] = useState(false);
   const [alertSet, setAlertSet] = useState(false);
@@ -62,11 +64,30 @@ const PriceAlertForm = ({ productId, currentPrice, currency, onAlertSet }: Price
 
       if (error) throw error;
 
+        // Send confirmation email
+      try {
+        await supabase.functions.invoke("send-price-alert", {
+          body: {
+            email: user.email,
+            productTitle,
+            productUrl,
+            currentPrice,
+            targetPrice: target,
+            currency,
+            emailType: "confirmation",
+          },
+        });
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+        // Don't fail the whole operation if email fails
+      }
+
+
       setAlertSet(true);
       onAlertSet?.(target);
       toast({
         title: "Alert set!",
-        description: `We'll notify you when the price drops below ${currency}${target.toLocaleString()}`,
+        description: `We'll notify you when the price drops below ${currency}${target.toLocaleString()}. Check your email for confirmation.`,
       });
     } catch (error: any) {
       console.error("Error setting alert:", error);
